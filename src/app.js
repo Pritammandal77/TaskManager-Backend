@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors"
-// import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -20,8 +20,10 @@ app.use(express.urlencoded({
 
 app.use(express.static("public"))
 
-// app.use(cookieParser())
+app.use(cookieParser())
 
+import authRouter from "./routes/auth.routes.js";
 
+app.use("/api/v1/user", authRouter)
 
 export { app }
