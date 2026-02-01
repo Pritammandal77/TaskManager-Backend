@@ -11,39 +11,68 @@ import {
   refreshTokenOptions,
 } from "../utils/cookieOptions.js";
 
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiREsponse.js";
+
 
 export const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      throw new ApiError(400, "All fields are required");
     }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      throw new ApiError(400, "User already exists");
     }
 
     await User.create({ email, password });
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-    });
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(201, {}, "User registered successfully")
+      );
 
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ message: "Server error" });
+    return res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiResponse(
+          error.statusCode || 500,
+          null,
+          error.message || "Something went wrong"
+        )
+      );
   }
 };
 
 
-export const getCurrentUser = (req, res) => {
-  res.status(200).json({
-    success: true,
-    user: req.user,
-  });
+export const getCurrentUser = async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, req.user, "User fetched successfully")
+      );
+
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiResponse(
+          error.statusCode || 500,
+          null,
+          error.message || "Something went wrong"
+        )
+      );
+  }
 };
 
 
@@ -52,12 +81,12 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      throw new ApiError(400, "All fields are required");
     }
 
     const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      throw new ApiError(401, "Invalid credentials");
     }
 
     const accessToken = generateAccessToken(user._id);
@@ -66,16 +95,28 @@ export const loginUser = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res
+    return res
       .cookie("accessToken", accessToken, accessTokenOptions)
       .cookie("refreshToken", refreshToken, refreshTokenOptions)
       .status(200)
-      .json({
-        success: true,
-        user: { id: user._id, email: user.email },
-      });
+      .json(
+        new ApiResponse(
+          200,
+          { id: user._id, email: user.email },
+          "Login successful"
+        )
+      );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    return res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiResponse(
+          error.statusCode || 500,
+          null,
+          error.message || "Something went wrong"
+        )
+      );
   }
 };
 
@@ -85,7 +126,7 @@ export const refreshAccessToken = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      return res.status(401).json({ message: "Unauthorized" });
+      throw new ApiError(401, "Unauthorized");
     }
 
     const decoded = jwt.verify(
@@ -95,17 +136,28 @@ export const refreshAccessToken = async (req, res) => {
 
     const user = await User.findById(decoded.userId);
     if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ message: "Forbidden" });
+      throw new ApiError(403, "Forbidden");
     }
 
     const newAccessToken = generateAccessToken(user._id);
 
-    res
+    return res
       .cookie("accessToken", newAccessToken, accessTokenOptions)
       .status(200)
-      .json({ success: true });
+      .json(
+        new ApiResponse(200, {}, "Access token refreshed")
+      );
+
   } catch (error) {
-    return res.status(401).json({ message: "Invalid or expired refresh token" });
+    return res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiResponse(
+          error.statusCode || 500,
+          null,
+          error.message || "Invalid or expired refresh token"
+        )
+      );
   }
 };
 
@@ -122,12 +174,23 @@ export const logoutUser = async (req, res) => {
       }
     }
 
-    res
+    return res
       .clearCookie("accessToken", accessTokenOptions)
       .clearCookie("refreshToken", refreshTokenOptions)
       .status(200)
-      .json({ message: "Logged out successfully" });
+      .json(
+        new ApiResponse(200, {}, "Logged out successfully")
+      );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    return res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiResponse(
+          error.statusCode || 500,
+          null,
+          error.message || "Something went wrong"
+        )
+      );
   }
 };

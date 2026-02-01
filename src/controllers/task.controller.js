@@ -1,6 +1,6 @@
-import { Task } from "../models/task.model";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiREsponse";
+import { Task } from "../models/task.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiREsponse.js";
 
 
 export const createNewTask = async (req, res) => {
