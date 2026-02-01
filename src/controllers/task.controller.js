@@ -50,7 +50,7 @@ export const fetchTasks = async (req, res) => {
             throw new ApiError(404, "User not found")
         }
 
-        const tasks = await Task.find({ user })
+        const tasks = await Task.find({ user }).sort({ createdAt: -1 });
 
         return res
             .status(200)
