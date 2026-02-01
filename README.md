@@ -1,9 +1,6 @@
 # 🗂️ Task Manager Backend (Internship Assignment)
 
-A **production‑style Task Manager Backend** built using **Node.js, Express, MongoDB, JWT Authentication**, and clean architecture principles. This project was developed as part of an **internship assignment**, with focus on **real‑world backend practices**, scalability, and clean error handling.
-
-> ⚠️ **Deployment was optional as per task instructions.**
-> Due to time constraints, this project is **not deployed** and is intended to be run **locally**.
+A **production‑style Task Manager Backend** built using **Node.js, Express, MongoDB, JWT Authentication**, and clean architecture principles, with focus on **real‑world backend practices**, scalability, and clean error handling.
 
 ---
 
